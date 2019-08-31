@@ -14,12 +14,13 @@ class Home extends CI_Controller {
   }
 
   public function index() {
-    
+    $data['title'] = 'preview data';
 
     $data['buku'] = $this->Model->getAll('buku')->result_array();
     $data['fields'] = $this->Model->getFields('buku');
     $data['numCol'] = $this->Model->getCol('buku');
 
+    $this->load->view('header', $data);
     $this->load->view('preview', $data);
   }
 
@@ -94,6 +95,55 @@ class Home extends CI_Controller {
 
     // set session flash message
     $this->session->set_flashdata('flash', 'Excel has been successfully generated'); 
+    redirect('');
+  }
+
+  public function new_data() {
+    $data['title'] = 'insert data';
+
+    if( $this->input->post('judul') ) {
+      $data = [
+        'judul' => $this->input->post('judul'),
+        'penulis' => $this->input->post('penulis'),
+        'isbn' => $this->input->post('isbn')
+      ];
+  
+      $this->Model->post('buku', $data);
+      $this->session->set_flashdata('flash', 'New data has been added');
+      redirect('');
+    }
+
+    $this->load->view('header', $data);
+    $this->load->view('form', $data);
+  }
+
+  public function up_data($id) {
+    $data['title'] = 'insert data';
+
+    if( $this->input->post('judul') ) {
+      $data = [
+        'judul' => $this->input->post('judul'),
+        'penulis' => $this->input->post('penulis'),
+        'isbn' => $this->input->post('isbn')
+      ];
+  
+      $this->Model->update('buku', $id, $data);
+      $this->session->set_flashdata('flash', 'Selected data has been updated');
+      redirect('');
+    }
+    $where = [
+      'id' => $id
+    ];
+
+    $data['buku'] = $this->Model->get('buku', $where)->row();
+
+    $this->load->view('header', $data);
+    $this->load->view('form', $data);
+  }
+
+  public function del_data($id) {
+    $this->Model->delete('buku', $id);
+    $this->session->set_flashdata('flash', 'Selected data successfully deleted');
     redirect('');
   }
 }
