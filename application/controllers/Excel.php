@@ -15,57 +15,84 @@ class Excel extends CI_Controller {
   }
 
   public function export() {
-  	// get data from DB
-    $book = $this->Model->getAll('buku')->result_array();
-    $fields = $this->Model->getFields('buku');
 
-    // make html html-type output
-  	$htmlString = '<table>';
-	    $htmlString .= '<tr>';
-	    foreach ($fields as $field) {
-	    	$htmlString .= '<th align="center" style="font-weight:bold">';
-	    	$htmlString .= $field;
-	    	$htmlString .= '</th>';
-	    }
-	    $htmlString .= '</tr>';
+    // array to hold coloumn character
+    $alphabet = [];
 
-	    foreach ($book as $bk) {
-	    	$htmlString .= '<tr>';
-	      foreach ($fields as $field) {
-	      	$htmlString .= '<td>';
-	      	$htmlString .= htmlspecialchars($bk[$field]);
-	      	$htmlString .= '</td>';
-	      }
-	    	$htmlString .= '</tr>';
-	    }
-		$htmlString .= '</table>';
+    // get number & name fields
+    $fields = $this->Model->getFields('applicant');
+    $num_col = $this->Model->getCol('applicant');
 
-		//what it's looks like in html view
-		/*<table>
-	    <?php foreach ($fields as $field) : ?>
-	    <th><?= strtoupper($field) ?></th>
-	    <?php endforeach; ?>
+    // generate char based on coloumn in db
+    for($i=1; $i <= $num_col; $i++) {
+      $char = $this->generateChar($i);
+      array_push($alphabet, $char);
+    }
 
-	    <?php foreach ($buku as $bk) : ?>
-	    <tr>
-	      <?php foreach ($fields as $field) : ?>
-	      <td>
-	        <?= $bk[$field] ?>
-	      </td>
-	      <?php endforeach; ?>
-	    </tr>
-	    <?php endforeach; ?>
-	  </table>*/ 
+    // create object
+    $xlsx = new Spreadsheet();
+    $sheet = $xlsx->getActiveSheet();
 
-		// convert to spreadsheet-type
-	 	$reader = new Html();
-		$spreadsheet = $reader->loadFromString($htmlString);
+    // give style
+    $style = [
+      'font' => [
+        'bold' => true
+      ], 
+      'alignment' => [
+        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+      ],
+      'borders' => [
+        'bottom' => [
+          'borderstyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+          'color' => [ 'rgb' => 333333 ]
+        ]
+      ],
+      'fill' => [
+        'type'       => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_GRADIENT_LINEAR,
+        'rotation'   => 90,
+        'startcolor' => array('rgb' => '0d0d0d'),
+        'endColor'   => array('rgb' => 'f2f2f2'),
+      ]
+    ];
+    // apply style to header
+    $xlsx->getActiveSheet()->getStyle($alphabet[0].'1:'.$alphabet[$num_col-1].'1')->applyFromArray($style);
 
-		// // generate excel
-		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-		header('Content-Disposition: attachment; filename="file.xlsx"');
-		$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-		$writer->save('php://output');
+    // autofit coloumn
+    foreach(range($alphabet[0], $alphabet[$num_col-1]) as $columnID) {
+      $xlsx->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(true);
+    }
+
+    // set header name
+    $x=0;
+    foreach ($fields as $field) {
+      $sheet->setCellValue($alphabet[$x].'1', $field);
+      $x++;
+    }
+
+    // get data from db
+    $getdata = $this->Model->getAll('applicant')->result_array();
+
+    // push data
+    $i = 2; //starting row
+    foreach( $getdata as $get ) {
+      $n=0;
+      foreach ($fields as $field) {
+        $sheet->setCellValue("$alphabet[$n]$i", $get[$field]);
+        $n++;
+      }
+      $i++;
+    }
+
+    // create excel
+    $write = new Xlsx($xlsx);
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="data_export.xlsx"');
+    $write->save('php://output');
+
+    // set session flash message
+    $this->session->set_flashdata('flash', 'Excel has been successfully generated'); 
+    redirect('');
   }
 
   public function dl_format() {
