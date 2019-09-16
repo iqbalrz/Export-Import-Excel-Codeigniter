@@ -15,6 +15,7 @@
   <br>
   <span class="btn blue"><a href="<?= base_url() ?>home/new_data">&#10010; New Data</a></span>
   <span class="btn"><a href="<?= base_url() ?>home/export">Export</a></span>
+  <span class="btn green"><a href="<?= base_url() ?>excel/import">Import</a></span>
 
 
   <br><br>
@@ -26,19 +27,17 @@
     <th></th>
 
     <!-- Data -->
-    <?php foreach ($buku as $bk) : ?>
-    <tr>
+    <?php foreach ($datas as $data) : ?>
+    <tr class="clickable">
       <?php foreach ($fields as $field) : ?>
-      <td class="view"><?= $bk[$field] ?></td>
-      <?php endforeach; ?>
-      <td>
-        <span class="badge edit">
-          <a href="<?= base_url() ?>home/up_data/<?= $bk['id'] ?>">&#128395;</a>
-        </span>
+      <td class="view">
+        <a href="<?= base_url() ?>home/up_data/<?= $data['id'] ?>"><?= $data[$field] ?></a>
       </td>
+      <?php endforeach; ?>
+
       <td>
         <span class="badge delete">
-          <a href="<?= base_url() ?>home/del_data/<?= $bk['id'] ?>" onclick="return confirm('Yakin?');">&#10005;</a>
+          <a href="<?= base_url() ?>home/del_data/<?= $data['id'] ?>" onclick="return confirm('Delete this item?');">&#10005;</a>
         </span>
       </td>
     </tr>

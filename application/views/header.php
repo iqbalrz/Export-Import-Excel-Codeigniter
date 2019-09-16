@@ -14,22 +14,28 @@
       text-decoration: none;
     }
 
+    .clickable:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
     .card {
       border-radius: 5px;
-      padding: 1px 10px 10px 10px;
+      padding: 1px 10px 5px 10px;
       width: 400px;
       min-height: 210px;
       background: white;
       box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.3);
+      overflow: auto;
     }
 
     .f-right {
       float: right;
+      margin-left: 5px !important;
     }
 
     table.view,
     td.view {
-      border: solid 1px #333;
+      border: solid 1px #BDBDBD;
       border-collapse: collapse;
     }
 
@@ -42,13 +48,19 @@
       padding: 8px;
       border: none;
       border-radius: 5px;
-      color: white;
       background: #ef6c00;
       cursor: pointer;
+      color: white;
     }
 
     .blue {
+      color: white;
       background: #1565C0;
+    }
+
+    .green {
+      color: white;
+      background: #43A047;
     }
 
     .badge {
