@@ -180,7 +180,6 @@ class Excel extends CI_Controller {
       } 
       // if failed upload
       else {
-      	// var_dump($this->upload->display_errors());
 	      $this->session->set_flashdata('flash', 'File failed to upload :(');
 	      redirect('excel/check_import');
       }
