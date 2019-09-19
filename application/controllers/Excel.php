@@ -208,14 +208,15 @@ class Excel extends CI_Controller {
   	$n=0;
   	foreach ($sheet as $row) {
   		// looping each coloumn in each row
-      // looping start from 1 to skip first row(header)
-  		for ($i=1; $i < $num_col; $i++) { 
+  		for ($i=0; $i < $num_col; $i++) { 
 	  		$data[$n][$fields[$i]] = $row[$alphabet[$i]];
   		}
-
   		// when all coloumn done, move to next row
 	  	$n++;
   	}
+
+    // remove the first data (row header)
+    array_shift($data);
 
   	// post all data in batch to database
   	$this->Model->post_batch($data);
