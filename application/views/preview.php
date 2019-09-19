@@ -15,11 +15,11 @@
   <br>
   <span class="btn blue"><a href="<?= base_url() ?>home/new_data">&#10010; New Data</a></span>
   <span class="btn"><a href="<?= base_url() ?>excel/export">Export</a></span>
-  <span class="btn green"><a href="<?= base_url() ?>excel/import">Import</a></span>
+  <span class="btn green"><a href="<?= base_url() ?>excel/check_import">Import</a></span>
 
 
   <br><br>
-  <table class="view">
+  <table class="view" cellpadding="8">
     <!-- Header -->
     <?php foreach ($fields as $field) : ?>
     <th><?= strtoupper($field) ?></th>

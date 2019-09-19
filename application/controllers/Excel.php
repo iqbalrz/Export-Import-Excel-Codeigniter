@@ -12,22 +12,46 @@ class Excel extends CI_Controller {
     parent::__construct();
 
     $this->load->model('Model');
+    $this->load->library('form_validation');
+  }
+
+  public function index() {
+  	$this->check_import();
+  }
+
+  public function generateChar($num) {
+    $numeric = ($num - 1) % 26;
+    $letter = chr(65 + $numeric);
+    $div = ($num - 1) / 26;
+    $num2 = (int)$div;
+    if ($num2 > 0) {
+        return $this->generateChar($num2) . $letter;
+    } else {
+        return $letter;
+    }
+  }
+
+  public function getLetters($num_col) {
+    // initialize array to hold coloumn character
+    $letters = [];
+
+    // generate char based on coloumn in db
+    for($i=1; $i <= $num_col; $i++) {
+      $char = $this->generateChar($i);
+      array_push($letters, $char);
+    }
+
+    return $letters;
   }
 
   public function export() {
-
-    // array to hold coloumn character
-    $alphabet = [];
 
     // get number & name fields
     $fields = $this->Model->getFields('applicant');
     $num_col = $this->Model->getCol('applicant');
 
-    // generate char based on coloumn in db
-    for($i=1; $i <= $num_col; $i++) {
-      $char = $this->generateChar($i);
-      array_push($alphabet, $char);
-    }
+    // get letters array
+    $alphabet = $this->getLetters($num_col);
 
     // create object
     $xlsx = new Spreadsheet();
@@ -89,14 +113,10 @@ class Excel extends CI_Controller {
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="data_export.xlsx"');
     $write->save('php://output');
-
-    // set session flash message
-    $this->session->set_flashdata('flash', 'Excel has been successfully generated'); 
-    redirect('');
   }
 
   public function dl_format() {
-    $fields = $this->Model->getFields('buku');
+    $fields = $this->Model->getFields('applicant');
 
   	$htmlString = '<table>';
     $htmlString .= '<tr>';
@@ -119,33 +139,102 @@ class Excel extends CI_Controller {
 		$writer->save('php://output');
   }
 
-  public function import() {
+  public function check_import() {
+  	// load upload library
+		$this->load->library('upload');
   	$data['title'] = 'import data from excel';
 
-  	if ($this->input->post) {
-  		$this->load->view('import_preview');
-  	}
+  	// get fieldsname & number of coloumn
+    $data['fields'] = $this->Model->getFields('applicant');
+    $num_col = $this->Model->getCol('applicant');
+
+    // get letters array
+    $alphabet = $this->getLetters($num_col);
 
   	$this->load->view('header', $data);
   	$this->load->view('import');
+
+    // check if preview button was clicked
+    if(isset($_POST['preview'])) {
+
+    	// set config for uploaded file
+    	$config['upload_path']          = './uploads/';
+      $config['allowed_types']        = 'xlsx';
+      $config['file_name']						= 'import_data';
+      $config['overwrite']						= TRUE;
+
+      // load upload library config
+      $this->upload->initialize($config);
+
+      // if uploaded
+      if ( $this->upload->do_upload('file_import') ) {
+      	$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+      	// read file that has been uploaded using specific reader
+      	$spreadsheet = $reader->load('./uploads/'.$this->upload->data('file_name'));
+
+      	// get all retrieved data from cell to array
+      	$data['sheet'] = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+      	$data['letters'] = $alphabet;
+
+      	$this->load->view('import_preview', $data);
+      } 
+      // if failed upload
+      else {
+      	// var_dump($this->upload->display_errors());
+	      $this->session->set_flashdata('flash', 'File failed to upload :(');
+	      redirect('excel/check_import');
+      }
+	  }
   }
 
-  public function ez() {
-		$arr_file = explode('.', $_FILES['file']['name']);
-    $extension = end($arr_file);
- 
+  public function import() {
+  	// get number of coloumn
+    $fields = $this->Model->getFields('applicant');
+    $num_col = $this->Model->getCol('applicant');
+
+    // get letters array
+    $alphabet = $this->getLetters($num_col);
+
     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
- 
-    $spreadsheet = $reader->load($_FILES['file']['tmp_name']);
-     
-    $sheetData = $spreadsheet->getActiveSheet()->toArray();
-    // print_r($sheetData);
-    foreach ($sheetData as $damn) {
-    	foreach ($damn as $key => $value) {
-    		# code...
-    	print_r($damn);
-    	echo '<br>';
-    	}
-    }
+  	$spreadsheet = $reader->load('./uploads/import_data.xlsx');
+
+  	$sheet = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+  	// $data['letters'] = $alphabet;
+
+    // initialize array to hold inserted data 
+  	$datas = [];
+  	$data = [];
+
+  	// var_dump($alphabet);
+  	// foreach ($sheet as $row) {
+  	// 	foreach ($fields as $field) {
+	  // 		for ($i=0; $i < $num_col; $i++) { 
+		 //  		array_push($data, [
+		 //  			"{$field}" => $row[$alphabet[$i]],
+		 //  		]);
+		 //  		continue;
+	  // 		}
+	  // 		continue;
+  	// 	}
+  	// 	array_push($datas, $data);
+  	// }
+
+  	// var_dump($data);
+
+  	foreach ($sheet as $row) {
+  		array_push($data, [
+  			'first_name' => $row['B'],
+  			'last_name' => $row['C'],
+  			'gender' => $row['D'],
+  			'phone' => $row['E'],
+  			'email' => $row['F'],
+  			'skill' => $row['G']
+  		]);
+  	}
+
+  	$this->Model->post_batch('applicant', $data);
+	  $this->session->set_flashdata('flash', 'Import data has been inserted');
+	  redirect('');
   }
+  
 }

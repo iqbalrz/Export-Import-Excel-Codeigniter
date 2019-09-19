@@ -14,6 +14,10 @@
       text-decoration: none;
     }
 
+    .clearfix {
+      overflow: auto;
+    }
+
     .clickable:hover {
       background: rgba(0, 0, 0, 0.2);
     }

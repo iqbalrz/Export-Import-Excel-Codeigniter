@@ -13,18 +13,6 @@ class Home extends CI_Controller {
     $this->load->model('Model');
   }
 
-  public function generateChar($num) {
-    $numeric = ($num - 1) % 26;
-    $letter = chr(65 + $numeric);
-    $div = ($num - 1) / 26;
-    $num2 = (int)$div;
-    if ($num2 > 0) {
-        return $this->generateChar($num2) . $letter;
-    } else {
-        return $letter;
-    }
-  }
-
   public function index() {
     $data['title'] = 'preview data';
 

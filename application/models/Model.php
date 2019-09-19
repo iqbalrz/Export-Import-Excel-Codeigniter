@@ -32,4 +32,8 @@ class Model extends CI_Model {
     $this->db->where('id', $where);
     $this->db->delete($table);
   }
+
+  public function post_batch($table, $data){
+    $this->db->insert_batch($table, $data);
+  }
 }
