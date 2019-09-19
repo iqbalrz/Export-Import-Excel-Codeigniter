@@ -208,8 +208,9 @@ class Excel extends CI_Controller {
   	// variable for initialize row
   	$n=0;
   	foreach ($sheet as $row) {
-  		// looping each coloumn in each row 
-  		for ($i=0; $i < $num_col; $i++) { 
+  		// looping each coloumn in each row
+      // looping start from 1 to skip first row(header)
+  		for ($i=1; $i < $num_col; $i++) { 
 	  		$data[$n][$fields[$i]] = $row[$alphabet[$i]];
   		}
 
