@@ -18,11 +18,12 @@
           <td>Gender</td>
           <!-- <td><input type="text" name="gender" value="<?php// if(isset($data->gender)) echo $data->gender ?>"></td> -->
           <td>
-            <select> 
-              <option value="Female" <?php if(isset($data->gender)=="Female") echo 'selected="selected"'; ?> >Female</option>
-              <option value="Male" <?php if(isset($data->gender)=="Male") echo 'selected="selected"'; ?> >Male</option>
+            <select name="gender"> 
+              <option value="Female" <?php isset($data->gender){if($data->gender=="Female") echo 'selected="selected"';}; ?> >Female</option>
+              <option value="Male" <?php isset($data->gender){if($data->gender=="Male") echo 'selected="selected"';}; ?> >Male</option>
             </select>
           </td>
+          <td><?php var_dump($data->gender); ?></td>
         </tr>
         <tr>
           <td>Phone</td>

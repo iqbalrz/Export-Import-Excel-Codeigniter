@@ -47,8 +47,8 @@ class Excel extends CI_Controller {
   public function export() {
 
     // get number & name fields
-    $fields = $this->Model->getFields('applicant');
-    $num_col = $this->Model->getCol('applicant');
+    $fields = $this->Model->getFields();
+    $num_col = $this->Model->getCol();
 
     // get letters array
     $alphabet = $this->getLetters($num_col);
@@ -95,7 +95,7 @@ class Excel extends CI_Controller {
     }
 
     // get data from db
-    $getdata = $this->Model->getAll('applicant')->result_array();
+    $getdata = $this->Model->getAll()->result_array();
 
     // push data
     $i = 2; //starting row
@@ -116,7 +116,7 @@ class Excel extends CI_Controller {
   }
 
   public function dl_format() {
-    $fields = $this->Model->getFields('applicant');
+    $fields = $this->Model->getFields();
 
   	$htmlString = '<table>';
     $htmlString .= '<tr>';
@@ -134,7 +134,7 @@ class Excel extends CI_Controller {
 
 		// // generate excel
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-		header('Content-Disposition: attachment; filename="formatX.xlsx"');
+		header('Content-Disposition: attachment; filename="format_import.xlsx"');
 		$writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
 		$writer->save('php://output');
   }
@@ -145,8 +145,8 @@ class Excel extends CI_Controller {
   	$data['title'] = 'import data from excel';
 
   	// get fieldsname & number of coloumn
-    $data['fields'] = $this->Model->getFields('applicant');
-    $num_col = $this->Model->getCol('applicant');
+    $data['fields'] = $this->Model->getFields();
+    $num_col = $this->Model->getCol();
 
     // get letters array
     $alphabet = $this->getLetters($num_col);
@@ -168,8 +168,8 @@ class Excel extends CI_Controller {
 
       // if uploaded
       if ( $this->upload->do_upload('file_import') ) {
-      	$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
       	// read file that has been uploaded using specific reader
+      	$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
       	$spreadsheet = $reader->load('./uploads/'.$this->upload->data('file_name'));
 
       	// get all retrieved data from cell to array
@@ -189,50 +189,36 @@ class Excel extends CI_Controller {
 
   public function import() {
   	// get number of coloumn
-    $fields = $this->Model->getFields('applicant');
-    $num_col = $this->Model->getCol('applicant');
+    $fields = $this->Model->getFields();
+    $num_col = $this->Model->getCol();
 
     // get letters array
     $alphabet = $this->getLetters($num_col);
-
+      	
+    // read file that has been uploaded using specific reader
     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
   	$spreadsheet = $reader->load('./uploads/import_data.xlsx');
 
+  	// retieve all data in excel then convert into array
   	$sheet = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-  	// $data['letters'] = $alphabet;
 
     // initialize array to hold inserted data 
-  	$datas = [];
   	$data = [];
 
-  	// var_dump($alphabet);
-  	// foreach ($sheet as $row) {
-  	// 	foreach ($fields as $field) {
-	  // 		for ($i=0; $i < $num_col; $i++) { 
-		 //  		array_push($data, [
-		 //  			"{$field}" => $row[$alphabet[$i]],
-		 //  		]);
-		 //  		continue;
-	  // 		}
-	  // 		continue;
-  	// 	}
-  	// 	array_push($datas, $data);
-  	// }
-
-  	// var_dump($data);
-
+  	// variable for initialize row
+  	$n=0;
   	foreach ($sheet as $row) {
-  		array_push($data, [
-  			'first_name' => $row['B'],
-  			'last_name' => $row['C'],
-  			'gender' => $row['D'],
-  			'phone' => $row['E'],
-  			'email' => $row['F'],
-  			'skill' => $row['G']
-  		]);
+  		// looping each coloumn in each row 
+  		for ($i=0; $i < $num_col; $i++) { 
+	  		$data[$n][$fields[$i]] = $row[$alphabet[$i]];
+  		}
+
+  		// when all coloumn done, move to next row
+	  	$n++;
   	}
 
-  	$this->Model->post_batch('applicant', $data);
+  	// post all data in batch to database
+  	$this->Model->post_batch($data);
 	  $this->session->set_flashdata('flash', 'Import data has been inserted');
 	  redirect('');
   }

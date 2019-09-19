@@ -16,9 +16,9 @@ class Home extends CI_Controller {
   public function index() {
     $data['title'] = 'preview data';
 
-    $data['datas'] = $this->Model->getAll('applicant')->result_array();
-    $data['fields'] = $this->Model->getFields('applicant');
-    $data['numCol'] = $this->Model->getCol('applicant');
+    $data['datas'] = $this->Model->getAll()->result_array();
+    $data['fields'] = $this->Model->getFields();
+    $data['numCol'] = $this->Model->getCol();
 
     $this->load->view('header', $data);
     $this->load->view('preview', $data);
@@ -37,7 +37,7 @@ class Home extends CI_Controller {
         'skill' => $this->input->post('skill')
       ];
   
-      $this->Model->post('applicant', $data);
+      $this->Model->post($data);
       $this->session->set_flashdata('flash', 'New data has been added');
       redirect('');
     }
@@ -59,7 +59,7 @@ class Home extends CI_Controller {
         'skill' => $this->input->post('skill')
       ];
   
-      $this->Model->update('applicant', $id, $data);
+      $this->Model->update($id, $data);
       $this->session->set_flashdata('flash', 'Selected data has been updated');
       redirect('');
     }
@@ -67,14 +67,14 @@ class Home extends CI_Controller {
       'id' => $id
     ];
 
-    $data['data'] = $this->Model->get('applicant', $where)->row();
+    $data['data'] = $this->Model->get($where)->row();
 
     $this->load->view('header', $data);
     $this->load->view('form', $data);
   }
 
   public function del_data($id) {
-    $this->Model->delete('applicant', $id);
+    $this->Model->delete($id);
     $this->session->set_flashdata('flash', 'Selected data successfully deleted');
     redirect('');
   }
